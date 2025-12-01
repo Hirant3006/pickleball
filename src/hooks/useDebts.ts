@@ -4,7 +4,6 @@ import { db } from '../lib/firebase';
 import { useSession } from './useSession';
 import { useExpenses } from './useExpenses';
 import { calculateDebts } from '../lib/debtCalculator';
-import { Player } from '../lib/types';
 
 export function useDebts(sessionId: string | undefined) {
   const { session } = useSession(sessionId);

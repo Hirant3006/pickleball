@@ -4,7 +4,13 @@
       "Bash(mkdir:*)",
       "Bash(npm create:*)",
       "Bash(npm install:*)",
-      "Bash(git add:*)"
+      "Bash(git add:*)",
+      "Bash(git commit -m \"$(cat <<''EOF''\nfeat: Complete Pickleball expense split MVP\n\nBuilt full-stack real-time expense tracking app with Firebase.\n\nFeatures:\n- Session creation with shareable links\n- Real-time player management\n- Multi-device sync\n- Expense logging (multiple itemized expenses)\n- Automatic debt calculation (equal split algorithm)\n- Mark debts as paid\n- Session archiving\n- Archive history viewing\n\nTech Stack:\n- React 18 + TypeScript\n- Vite 5 (build tool)\n- Firebase Realtime Database\n- Tailwind CSS (Swiss minimalist design)\n- React Router (hash-based routing)\n\nStories Completed:\n✅ Story 1.1: Session Creation & Player Management\n✅ Story 1.2: Expense Logging & Debt Calculation\n✅ Story 1.3: Settlement & Session Archive\n✅ Story 1.4: Archive History Viewing\n\n🤖 Generated with Claude Code\n\nCo-Authored-By: Claude <noreply@anthropic.com>\nEOF\n)\")",
+      "Bash(git config:*)",
+      "Bash(git remote add:*)",
+      "Bash(git push:*)",
+      "Bash(npm run build:*)",
+      "Bash(git commit:*)"
     ],
     "deny": [],
     "ask": []
