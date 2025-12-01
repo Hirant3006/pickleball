@@ -1,31 +1,34 @@
-import { Expense, Player } from '../lib/types';
+import { Expense } from '../lib/types';
+import { Receipt } from 'lucide-react';
 
 interface ExpenseListProps {
   expenses: Expense[];
-  players: Player[];
+  hostName: string;
 }
 
-export default function ExpenseList({ expenses, players }: ExpenseListProps) {
-  const getPlayerName = (playerId: string) => {
-    const player = players.find((p) => p.id === playerId);
-    return player ? player.name : 'Unknown';
-  };
-
+export default function ExpenseList({ expenses, hostName }: ExpenseListProps) {
   const total = expenses.reduce((sum, exp) => sum + exp.amount, 0);
+
+  const formatVND = (amount: number) => {
+    return new Intl.NumberFormat('vi-VN').format(amount);
+  };
 
   if (expenses.length === 0) {
     return (
       <div className="bg-gray-100 p-6">
-        <h2 className="text-2xl font-bold mb-4">Expenses</h2>
-        <p className="text-gray-600">No expenses yet. Add one above!</p>
+        <h2 className="text-2xl font-bold mb-4 flex items-center gap-2">
+          <Receipt className="w-7 h-7" /> Các Khoản "Thiệt Hại"
+        </h2>
+        <p className="text-gray-600">Chưa có "thiệt hại" nào. Thêm ở trên nhé!</p>
       </div>
     );
   }
 
   return (
     <div className="bg-gray-100 p-6">
-      <h2 className="text-2xl font-bold mb-4">
-        Expenses (Total: ${total.toFixed(2)})
+      <h2 className="text-2xl font-bold mb-4 flex items-center gap-2">
+        <Receipt className="w-7 h-7" />
+        Các Khoản "Thiệt Hại" (Tổng: {formatVND(total)} VND)
       </h2>
 
       <div className="space-y-3">
@@ -36,10 +39,10 @@ export default function ExpenseList({ expenses, players }: ExpenseListProps) {
           >
             <div className="flex justify-between items-start mb-2">
               <div className="font-bold text-lg">{expense.description}</div>
-              <div className="text-xl font-bold">${expense.amount.toFixed(2)}</div>
+              <div className="text-xl font-bold">{formatVND(expense.amount)} VND</div>
             </div>
             <div className="text-sm text-gray-600">
-              Paid by: {getPlayerName(expense.paidBy)}
+              Người trả: {hostName}
             </div>
           </div>
         ))}

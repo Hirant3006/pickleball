@@ -1,23 +1,23 @@
 import { useState, FormEvent } from 'react';
 import { ref, push, set } from 'firebase/database';
 import { db } from '../lib/firebase';
-import { Player } from '../lib/types';
+import { Coins, Landmark, Loader2, Plus, Receipt } from 'lucide-react';
 
 interface ExpenseFormProps {
   sessionId: string;
-  players: Player[];
+  hostId: string;
+  hostName: string;
 }
 
-export default function ExpenseForm({ sessionId, players }: ExpenseFormProps) {
+export default function ExpenseForm({ sessionId, hostId, hostName }: ExpenseFormProps) {
   const [amount, setAmount] = useState('');
   const [description, setDescription] = useState('');
-  const [paidBy, setPaidBy] = useState('');
   const [submitting, setSubmitting] = useState(false);
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
 
-    if (!amount || !description.trim() || !paidBy) return;
+    if (!amount || !description.trim()) return;
 
     setSubmitting(true);
     try {
@@ -26,96 +26,76 @@ export default function ExpenseForm({ sessionId, players }: ExpenseFormProps) {
       await set(expenseRef, {
         amount: parseFloat(amount),
         description: description.trim(),
-        paidBy,
+        paidBy: hostId,
         createdAt: Date.now(),
       });
 
       // Clear form
       setAmount('');
       setDescription('');
-      setPaidBy('');
     } catch (error) {
-      console.error('Error adding expense:', error);
-      alert('Failed to add expense. Please try again.');
+      console.error('Lỗi thêm chi tiêu:', error);
+      alert('Hỏng rồi, không thêm được khoản chi. Thử lại sau nhé.');
     } finally {
       setSubmitting(false);
     }
   };
 
-  if (players.length === 0) {
-    return (
-      <div className="bg-gray-100 p-6">
-        <h2 className="text-2xl font-bold mb-4">Add Expense</h2>
-        <p className="text-gray-600">
-          Add players first before logging expenses.
-        </p>
-      </div>
-    );
-  }
-
   return (
     <div className="bg-gray-100 p-6">
-      <h2 className="text-2xl font-bold mb-6">Add Expense</h2>
+      <h2 className="text-2xl font-bold mb-6 flex items-center gap-2">
+        <Receipt className="w-7 h-7" /> Thêm "Thiệt Hại"
+      </h2>
+      <p className="text-sm text-gray-600 mb-4">Người trả: {hostName}</p>
 
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
-          <label htmlFor="description" className="block font-bold mb-2">
-            Description
+          <label htmlFor="description" className="flex items-center gap-2 font-bold mb-2">
+            <Landmark className="w-5 h-5" /> Nội dung chi
           </label>
           <input
             id="description"
             type="text"
             value={description}
             onChange={(e) => setDescription(e.target.value)}
-            placeholder="e.g., Court rental, Balls, Water"
+            placeholder="Ví dụ: Tiền sân, banh, nước..."
             required
             className="w-full px-4 py-2 border-2 border-black focus:outline-none focus:ring-2 focus:ring-black"
           />
         </div>
 
         <div>
-          <label htmlFor="amount" className="block font-bold mb-2">
-            Amount ($)
+          <label htmlFor="amount" className="flex items-center gap-2 font-bold mb-2">
+            <Coins className="w-5 h-5" /> Số tiền (VND)
           </label>
           <input
             id="amount"
             type="number"
-            step="0.01"
-            min="0.01"
+            step="1000"
+            min="1000"
             value={amount}
             onChange={(e) => setAmount(e.target.value)}
-            placeholder="0.00"
+            placeholder="0"
             required
             className="w-full px-4 py-2 border-2 border-black focus:outline-none focus:ring-2 focus:ring-black"
           />
-        </div>
-
-        <div>
-          <label htmlFor="paidBy" className="block font-bold mb-2">
-            Who Paid?
-          </label>
-          <select
-            id="paidBy"
-            value={paidBy}
-            onChange={(e) => setPaidBy(e.target.value)}
-            required
-            className="w-full px-4 py-2 border-2 border-black focus:outline-none focus:ring-2 focus:ring-black"
-          >
-            <option value="">Select player...</option>
-            {players.map((player) => (
-              <option key={player.id} value={player.id}>
-                {player.name}
-              </option>
-            ))}
-          </select>
         </div>
 
         <button
           type="submit"
           disabled={submitting}
-          className="w-full px-6 py-3 bg-black text-white font-bold hover:bg-gray-800 disabled:bg-gray-400 transition-colors"
+          className="w-full px-6 py-3 bg-black text-white font-bold hover:bg-gray-800 disabled:bg-gray-400 transition-colors inline-flex items-center justify-center gap-2"
         >
-          {submitting ? 'Adding...' : 'Add Expense'}
+          {submitting ? (
+            <>
+              <Loader2 className="w-5 h-5 animate-spin" />
+              Đang thêm...
+            </>
+          ) : (
+            <>
+              <Plus className="w-5 h-5" /> Thêm Khoản Chi
+            </>
+          )}
         </button>
       </form>
     </div>

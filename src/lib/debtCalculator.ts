@@ -28,11 +28,11 @@ export function calculateDebts(
 
   // Step 4: Match creditors (positive) with debtors (negative)
   const creditors = balances
-    .filter((b) => b.balance > 0.01) // Ignore tiny amounts due to rounding
+    .filter((b) => b.balance > 1) // Ignore tiny amounts (VND has no decimals)
     .sort((a, b) => b.balance - a.balance);
 
   const debtors = balances
-    .filter((b) => b.balance < -0.01)
+    .filter((b) => b.balance < -1)
     .sort((a, b) => a.balance - b.balance);
 
   const settlements: Omit<Settlement, 'id'>[] = [];
@@ -48,7 +48,7 @@ export function calculateDebts(
     settlements.push({
       from: debtor.playerId,
       to: creditor.playerId,
-      amount: parseFloat(amount.toFixed(2)), // Round to 2 decimals
+      amount: Math.round(amount), // Round to whole number for VND
       paid: false,
       paidAt: null,
     });
@@ -56,8 +56,8 @@ export function calculateDebts(
     creditor.balance -= amount;
     debtor.balance += amount;
 
-    if (Math.abs(creditor.balance) < 0.01) i++;
-    if (Math.abs(debtor.balance) < 0.01) j++;
+    if (Math.abs(creditor.balance) < 1) i++;
+    if (Math.abs(debtor.balance) < 1) j++;
   }
 
   return settlements;

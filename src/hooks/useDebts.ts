@@ -1,5 +1,5 @@
 import { useMemo, useEffect } from 'react';
-import { ref, set, remove } from 'firebase/database';
+import { ref, set, remove, get } from 'firebase/database';
 import { db } from '../lib/firebase';
 import { useSession } from './useSession';
 import { useExpenses } from './useExpenses';
@@ -21,7 +21,7 @@ export function useDebts(sessionId: string | undefined) {
     return calculateDebts(expenses, players);
   }, [expenses, players]);
 
-  // Auto-sync settlements to Firebase when debts change
+  // Auto-sync settlements to Firebase when debts change, preserving paid status
   useEffect(() => {
     if (!sessionId || !session) return;
 
@@ -31,11 +31,29 @@ export function useDebts(sessionId: string | undefined) {
     if (debts.length === 0) {
       remove(settlementsRef);
     } else {
-      const settlementsData: any = {};
-      debts.forEach((debt, index) => {
-        settlementsData[`settlement-${index}`] = debt;
+      // Get existing settlements to preserve paid status
+      get(settlementsRef).then((snapshot) => {
+        const existingSettlements: any = snapshot.exists() ? snapshot.val() : {};
+
+        const settlementsData: any = {};
+        debts.forEach((debt, index) => {
+          const settlementKey = `settlement-${index}`;
+          const existingSettlement = existingSettlements[settlementKey];
+
+          // Preserve paid status if settlement exists and matches (same from/to)
+          const shouldPreservePaid = existingSettlement &&
+                                     existingSettlement.from === debt.from &&
+                                     existingSettlement.to === debt.to &&
+                                     existingSettlement.paid === true;
+
+          settlementsData[settlementKey] = {
+            ...debt,
+            paid: shouldPreservePaid ? true : debt.paid,
+            paidAt: shouldPreservePaid ? existingSettlement.paidAt : debt.paidAt,
+          };
+        });
+        set(settlementsRef, settlementsData);
       });
-      set(settlementsRef, settlementsData);
     }
   }, [sessionId, session, debts]);
 

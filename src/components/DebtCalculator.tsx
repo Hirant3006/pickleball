@@ -1,130 +1,111 @@
-import { useState } from 'react';
 import { ref, update } from 'firebase/database';
 import { db } from '../lib/firebase';
 import { Player, Settlement } from '../lib/types';
 import { useSettlements } from '../hooks/useSettlements';
+import { FilePlus2, Scale, Users } from 'lucide-react';
 
 interface DebtCalculatorProps {
   sessionId: string;
   debts: Omit<Settlement, 'id'>[];
   players: Player[];
+  hostId: string;
+  hostName: string;
   isArchived?: boolean;
 }
 
-export default function DebtCalculator({ sessionId, debts, players, isArchived = false }: DebtCalculatorProps) {
+export default function DebtCalculator({ sessionId, debts, players, hostId, hostName, isArchived = false }: DebtCalculatorProps) {
   const { settlements } = useSettlements(sessionId);
-  const [archiving, setArchiving] = useState(false);
 
   const getPlayerName = (playerId: string) => {
+    if (playerId === hostId) return hostName;
     const player = players.find((p) => p.id === playerId);
-    return player ? player.name : 'Unknown';
+    return player ? player.name : 'Người lạ';
   };
 
-  const handleMarkAsPaid = async (settlementId: string) => {
+  const formatVND = (amount: number) => {
+    return new Intl.NumberFormat('vi-VN').format(amount);
+  };
+
+  const handleTogglePaid = async (settlementId: string, currentPaidStatus: boolean) => {
     try {
       await update(ref(db, `sessions/${sessionId}/settlements/${settlementId}`), {
-        paid: true,
-        paidAt: Date.now(),
+        paid: !currentPaidStatus,
+        paidAt: !currentPaidStatus ? Date.now() : null,
       });
     } catch (error) {
-      console.error('Error marking as paid:', error);
-      alert('Failed to mark as paid. Please try again.');
+      console.error('Lỗi cập nhật thanh toán:', error);
+      alert('Hỏng rồi, không cập nhật được. Thử lại sau nhé.');
     }
   };
-
-  const handleArchiveSession = async () => {
-    if (!confirm('Archive this session? It will become read-only.')) return;
-
-    setArchiving(true);
-    try {
-      await update(ref(db, `sessions/${sessionId}`), {
-        archived: true,
-        archivedAt: Date.now(),
-      });
-      alert('Session archived! Redirecting to home...');
-      window.location.hash = '#/';
-    } catch (error) {
-      console.error('Error archiving session:', error);
-      alert('Failed to archive session. Please try again.');
-    } finally {
-      setArchiving(false);
-    }
-  };
-
-  const allPaid = settlements.length > 0 && settlements.every(s => s.paid === true);
 
   if (debts.length === 0) {
+    const needMorePlayers = players.length < 2;
     return (
-      <div className="bg-gray-100 p-6">
-        <h2 className="text-2xl font-bold mb-4">Who Owes Whom</h2>
-        <p className="text-gray-600">
-          No debts yet. Add expenses to see the split!
-        </p>
+      <div className="bg-gray-100 p-6 text-center">
+        <h2 className="text-2xl font-bold mb-4 flex items-center justify-center gap-2">
+          <Scale className="w-7 h-7" /> Cân Kèo Chia Tiền
+        </h2>
+        <div className="flex items-center justify-center gap-2 text-gray-600">
+          {needMorePlayers ? (
+            <>
+              <Users className="w-5 h-5" />
+              <p>Thêm bạn thêm vui! Có đông người mới chia được chứ.</p>
+            </>
+          ) : (
+            <>
+              <FilePlus2 className="w-5 h-5" />
+              <p>Chưa có "thiệt hại" nào. Thêm chi tiêu để xem ai trả ai nhé!</p>
+            </>
+          )}
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="bg-black text-white p-6">
-      <h2 className="text-2xl font-bold mb-6">Who Owes Whom</h2>
+    <div className="bg-gray-100 p-6">
+      <h2 className="text-2xl font-bold mb-6 flex items-center gap-2">
+        <Scale className="w-7 h-7" /> Cân Kèo Chia Tiền
+      </h2>
 
-      <div className="space-y-4">
+      <div className="space-y-3">
         {settlements.map((settlement) => {
           const isPaid = settlement.paid === true;
 
           return (
             <div
               key={settlement.id}
-              className={`bg-white text-black p-4 ${isPaid ? 'opacity-60' : ''}`}
+              className="bg-white border-2 border-black p-4"
             >
-              <div className="flex justify-between items-center mb-3">
-                <div className="text-lg">
-                  <span className={`font-bold ${isPaid ? 'line-through' : ''}`}>
-                    {getPlayerName(settlement.from)}
-                  </span>
-                  {' owes '}
-                  <span className={`font-bold ${isPaid ? 'line-through' : ''}`}>
-                    {getPlayerName(settlement.to)}
-                  </span>
-                </div>
-                <div className={`text-2xl font-bold ${isPaid ? 'line-through' : ''}`}>
-                  ${settlement.amount.toFixed(2)}
-                </div>
-              </div>
+              <label className="flex items-center gap-4 cursor-pointer group">
+                <input
+                  type="checkbox"
+                  checked={isPaid}
+                  onChange={() => {
+                    if (!isArchived) {
+                      handleTogglePaid(settlement.id, isPaid);
+                    }
+                  }}
+                  disabled={isArchived}
+                  className="w-6 h-6 border-2 border-black cursor-pointer accent-black disabled:cursor-not-allowed"
+                />
 
-              {isPaid ? (
-                <div className="text-sm text-green-600 font-bold">
-                  ✓ Paid {settlement.paidAt ? new Date(settlement.paidAt).toLocaleDateString() : ''}
+                <div className="flex-1 flex justify-between items-center">
+                  <div className={`text-lg ${isPaid ? 'line-through text-gray-400' : ''}`}>
+                    <span className="font-bold">{getPlayerName(settlement.from)}</span>
+                    {' trả cho '}
+                    <span className="font-bold">{getPlayerName(settlement.to)}</span>
+                  </div>
+
+                  <div className={`text-xl font-bold ${isPaid ? 'line-through text-gray-400' : ''}`}>
+                    {formatVND(settlement.amount)} VND
+                  </div>
                 </div>
-              ) : (
-                !isArchived && (
-                  <button
-                    onClick={() => handleMarkAsPaid(settlement.id)}
-                    className="w-full px-4 py-2 bg-green-600 text-white font-bold hover:bg-green-700 transition-colors"
-                  >
-                    Mark as Paid
-                  </button>
-                )
-              )}
+              </label>
             </div>
           );
         })}
       </div>
-
-      {!isArchived && allPaid && (
-        <div className="mt-6">
-          <button
-            onClick={handleArchiveSession}
-            disabled={archiving}
-            className="w-full px-6 py-4 bg-red-600 text-white text-xl font-bold hover:bg-red-700 disabled:bg-gray-400 transition-colors"
-          >
-            {archiving ? 'Archiving...' : 'Archive Session'}
-          </button>
-          <p className="text-sm text-center mt-2">
-            All debts paid! Archive this session to start fresh next week.
-          </p>
-        </div>
-      )}
     </div>
   );
 }

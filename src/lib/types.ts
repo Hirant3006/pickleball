@@ -23,6 +23,10 @@ export interface Settlement {
 
 export interface Session {
   id: string;
+  name: string;
+  date: string;
+  hostId: string;
+  hostName: string;
   createdAt: number;
   players: Record<string, Omit<Player, 'id'>>;
   expenses: Record<string, Omit<Expense, 'id'>>;

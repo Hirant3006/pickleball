@@ -19,18 +19,27 @@ generated: "2025-12-01"
 project: "pickle"
 project_type: "Pickleball Expense Split - Multi-device web app for fair cost splitting"
 selected_track: "quick-flow"
-field_type: "greenfield"
-workflow_path: ".bmad/bmm/workflows/workflow-status/paths/quick-flow-greenfield.yaml"
+field_type: "brownfield"
+workflow_path: ".bmad/bmm/workflows/workflow-status/paths/quick-flow-brownfield.yaml"
 
 workflow_status:
+  # Prerequisite: Documentation (brownfield only)
+  prerequisite:
+    document-project: "optional"
+
   # Phase 0: Discovery (Optional)
   discovery:
-    brainstorm-project: "skipped"
+    brainstorm-project: "optional"
     research: "skipped"
 
   # Phase 1: Planning
   planning:
     tech-spec: "docs/tech-spec.md"
+    story-session-management-1: "required"
+    story-session-management-2: "pending"
+    story-session-management-3: "pending"
+    story-session-management-4: "pending"
+    story-session-management-5: "pending"
 
   # Phase 2: Implementation
   implementation:
