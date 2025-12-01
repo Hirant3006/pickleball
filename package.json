@@ -1,12 +1,29 @@
 {
   "name": "pickle",
-  "private": true,
-  "version": "0.0.0",
+  "version": "1.0.0",
+  "description": "Real-time expense tracking and splitting app for Pickleball groups",
+  "author": "Hirant",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Hirant3006/pickleball.git"
+  },
+  "keywords": [
+    "pickleball",
+    "expense-tracker",
+    "split-bills",
+    "firebase",
+    "react",
+    "real-time",
+    "typescript"
+  ],
+  "private": false,
   "type": "module",
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "lint": "tsc --noEmit"
   },
   "dependencies": {
     "react": "^18.2.0",
