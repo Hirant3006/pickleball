@@ -12,6 +12,7 @@ import {
   Wrench,
   Loader2,
   AlertTriangle,
+  Link as LinkIcon,
 } from 'lucide-react';
 
 const USER_NAME_KEY = 'pickle_user_name';
@@ -24,6 +25,7 @@ export default function SessionDashboard() {
   const [showOnboarding, setShowOnboarding] = useState(false);
   const [nameInput, setNameInput] = useState('');
   const [savingName, setSavingName] = useState(false);
+  const [sessionLink, setSessionLink] = useState('');
 
   const loading = authLoading || sessionsLoading;
 
@@ -71,6 +73,43 @@ export default function SessionDashboard() {
     } catch (error) {
       console.error('Lỗi chốt sổ:', error);
       alert('Hỏng rồi, chốt sổ không được. Thử lại sau nhé.');
+    }
+  };
+
+  const handleJoinByLink = () => {
+    const trimmedLink = sessionLink.trim();
+    if (!trimmedLink) {
+      alert('Dán link vào đây nào!');
+      return;
+    }
+
+    // Extract session ID from various link formats
+    // Supports: full URL or just the session ID
+    let sessionId = '';
+
+    try {
+      // Try to match hash-based URLs like: http://domain/#/join/ABC123
+      const hashMatch = trimmedLink.match(/#\/join\/([^/?]+)/);
+      if (hashMatch) {
+        sessionId = hashMatch[1];
+      } else {
+        // Try to match direct session IDs (just the ID string)
+        const idMatch = trimmedLink.match(/^([a-zA-Z0-9_-]+)$/);
+        if (idMatch) {
+          sessionId = idMatch[1];
+        }
+      }
+
+      if (!sessionId) {
+        alert('Link không hợp lệ. Vui lòng kiểm tra lại!');
+        return;
+      }
+
+      // Navigate to join page
+      navigate(`/join/${sessionId}`);
+    } catch (error) {
+      console.error('Lỗi xử lý link:', error);
+      alert('Link không đúng định dạng. Thử lại nhé!');
     }
   };
 
@@ -146,10 +185,36 @@ export default function SessionDashboard() {
       <div className="max-w-4xl mx-auto">
         <h1 className="text-6xl font-bold mb-4 text-black text-center">pickle</h1>
         {userName && (
-          <p className="text-2xl text-gray-600 mb-12 text-center">
+          <p className="text-2xl text-gray-600 mb-8 text-center">
             Mừng trở lại, {userName}!
           </p>
         )}
+
+        {/* Join Session CTA */}
+        <div className="mb-12 p-6 border-2 border-black bg-gray-50">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
+            <div className="flex-1 w-full">
+              <label htmlFor="session-link" className="flex items-center gap-2 text-lg font-bold mb-2">
+                <LinkIcon className="w-5 h-5" /> Có Link Kèo? Nhập Hội Ngay!
+              </label>
+              <input
+                id="session-link"
+                type="text"
+                value={sessionLink}
+                onChange={(e) => setSessionLink(e.target.value)}
+                onKeyPress={(e) => e.key === 'Enter' && handleJoinByLink()}
+                placeholder="Dán link kèo vào đây..."
+                className="w-full px-4 py-3 border-2 border-black text-lg focus:outline-none focus:ring-2 focus:ring-black"
+              />
+            </div>
+            <button
+              onClick={handleJoinByLink}
+              className="w-full sm:w-auto px-8 py-3 bg-black text-white text-lg font-bold hover:bg-gray-800 transition-colors self-end flex items-center justify-center gap-2"
+            >
+              <LinkIcon className="w-5 h-5" /> Nhập Hội
+            </button>
+          </div>
+        </div>
 
         <div className="mb-8 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <h2 className="text-3xl font-bold">Các Kèo Của Tui</h2>
